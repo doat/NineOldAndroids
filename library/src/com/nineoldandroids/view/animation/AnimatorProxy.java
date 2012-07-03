@@ -1,7 +1,5 @@
 package com.nineoldandroids.view.animation;
 
-import java.lang.ref.WeakReference;
-import java.util.WeakHashMap;
 import android.graphics.Camera;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -9,6 +7,9 @@ import android.os.Build;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
+
+import java.lang.ref.WeakReference;
+import java.util.WeakHashMap;
 
 /**
  * A proxy class to allow for modifying post-3.0 view properties on all pre-3.0
@@ -225,22 +226,6 @@ public final class AnimatorProxy extends Animation {
         }
     }
 
-    public float getScale() {
-        // this is a pseudo-property for the frequent case where
-        // scaleX and scaleY are being updated synchronously
-        return Math.max(mScaleX, mScaleY);
-    }
-    public void setScale(float scale) {
-        // this is a pseudo-property for the frequent case where
-        // scaleX and scaleY are being updated synchronously
-        if (mScaleX != scale || mScaleY != scale) {
-            prepareForUpdate();
-            mScaleX = scale;
-            mScaleY = scale;
-            invalidateAfterUpdate();
-        }
-    }
-
     private void prepareForUpdate() {
         View view = mView.get();
         if (view != null) {
@@ -248,24 +233,20 @@ public final class AnimatorProxy extends Animation {
         }
     }
     private void invalidateAfterUpdate() {
- 		View view = mView.get();
-		if (view == null)
-		{
-			return;
-		}
+        View view = mView.get();
+        if (view == null || view.getParent() == null) {
+            return;
+        }
 
-		final RectF after = mAfter;
-		computeRect(after, view);
-		after.union(mBefore);
-		View parent = (View) view.getParent();
-		
-		if (parent != null)
-		{
-			parent.invalidate((int) Math.floor(after.left), (int) Math.floor(after.top),
-					(int) Math.ceil(after.right), (int) Math.ceil(after.bottom));
-		}
-		else
-			view.invalidate();
+        final RectF after = mAfter;
+        computeRect(after, view);
+        after.union(mBefore);
+
+        ((View)view.getParent()).invalidate(
+                (int) Math.floor(after.left),
+                (int) Math.floor(after.top),
+                (int) Math.ceil(after.right),
+                (int) Math.ceil(after.bottom));
     }
 
     private void computeRect(final RectF r, View view) {
@@ -299,15 +280,15 @@ public final class AnimatorProxy extends Animation {
     private void transformMatrix(Matrix m, View view) {
         final float w = view.getWidth();
         final float h = view.getHeight();
+        final boolean hasPivot = mHasPivot;
+        final float pX = hasPivot ? mPivotX : w / 2f;
+        final float pY = hasPivot ? mPivotY : h / 2f;
 
         final float rX = mRotationX;
         final float rY = mRotationY;
         final float rZ = mRotationZ;
         if ((rX != 0) || (rY != 0) || (rZ != 0)) {
             final Camera camera = mCamera;
-            final boolean hasPivot = mHasPivot;
-            final float pX = hasPivot ? mPivotX : w / 2f;
-            final float pY = hasPivot ? mPivotY : h / 2f;
             camera.save();
             camera.rotateX(rX);
             camera.rotateY(rY);
@@ -321,11 +302,12 @@ public final class AnimatorProxy extends Animation {
         final float sX = mScaleX;
         final float sY = mScaleY;
         if ((sX != 1.0f) || (sY != 1.0f)) {
-            final float deltaSX = ((sX * w) - w) / 2f;
-            final float deltaSY = ((sY * h) - h) / 2f;
             m.postScale(sX, sY);
-            m.postTranslate(-deltaSX, -deltaSY);
+            final float sPX = -(pX / w) * ((sX * w) - w);
+            final float sPY = -(pY / h) * ((sY * h) - h);
+            m.postTranslate(sPX, sPY);
         }
+
         m.postTranslate(mTranslationX, mTranslationY);
     }
 

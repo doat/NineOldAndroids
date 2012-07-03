@@ -12,7 +12,7 @@
 	<groupId>com.nineoldandroids</groupId>
 	<artifactId>parent</artifactId>
 	<packaging>pom</packaging>
-	<version>2.3.0</version>
+	<version>2.4.0</version>
 
 	<name>Nine Old Androids (Parent)</name>
 	<description>Android library for using the Honeycomb animation API on all versions of the platform back to 1.0!</description>
@@ -69,7 +69,7 @@
 		<android.version>4.0.1.2</android.version>
 		<android.platform>14</android.platform>
 
-		<android-maven.version>3.1.1</android-maven.version>
+		<android-maven.version>3.2.0</android-maven.version>
 	</properties>
 
 	<dependencyManagement>

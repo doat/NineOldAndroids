@@ -1,6 +1,15 @@
 Change Log
 ==========
 
+Version 2.4.0 *(2012-06-24)*
+----------------------------
+
+ * Add `ViewHelper` class which will delegate new `View` property calls to
+   their native counterparts when available.
+ * Fix: Do not invalidate parent if view is not attached to anything.
+ * Fix: Respect pivot for both scaling in addition to rotating.
+
+
 Version 2.3.0 *(2012-04-25)*
 ----------------------------
 
